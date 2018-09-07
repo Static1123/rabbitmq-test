@@ -1,6 +1,6 @@
 package com.yl.rabbitmq.controller;
 
-import com.yl.rabbitmq.service.RabbitMqService;
+import com.yl.rabbitmq.component.RabbitMQComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,11 +14,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/mq")
 public class RabbitMqController {
     @Autowired
-    private RabbitMqService rabbitMqService;
+    private RabbitMQComponent rabbitMQComponent;
 
     @RequestMapping("/directSend")
     public boolean directSend(@RequestParam("msg") String msg) {
-        rabbitMqService.send("rabbitmq-test", msg);
+        rabbitMQComponent.directSend("rabbitmq-test", msg);
+        return true;
+    }
+
+    @RequestMapping("/exchangeSend")
+    public boolean exchangeSend(@RequestParam("msg") String msg) {
+        rabbitMQComponent.exchangeSend("q.exchange", msg, "exchange1");
         return true;
     }
 }
