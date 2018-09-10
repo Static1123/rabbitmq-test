@@ -1,7 +1,7 @@
 package com.yl.rabbitmq.config;
 
-import com.yl.rabbitmq.service.RabbitMqService;
 import com.yl.rabbitmq.service.RabbitMessageListener;
+import com.yl.rabbitmq.service.RabbitMqService;
 import com.yl.rabbitmq.service.impl.SimpleRabbitServiceImpl;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -21,7 +21,6 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * @author admin
@@ -143,10 +142,7 @@ public class RabbitMqAutoConfiguration implements ApplicationContextAware, Initi
         if (autoListen) {
             Collection<RabbitMessageListener> rabbitListeners = applicationContext.getBeansOfType(RabbitMessageListener.class).values();
             RabbitMqService rabbitMQService = applicationContext.getBean(RabbitMqService.class);
-            Iterator<RabbitMessageListener> it = rabbitListeners.iterator();
-            while (it.hasNext()) {
-                rabbitMQService.listen(it.next());
-            }
+            rabbitMQService.listen(rabbitListeners);
         }
     }
 }

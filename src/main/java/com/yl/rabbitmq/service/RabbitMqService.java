@@ -2,6 +2,8 @@ package com.yl.rabbitmq.service;
 
 import com.yl.rabbitmq.entity.RabbitMqTarget;
 
+import java.util.Collection;
+
 /**
  * 消息队列接口
  *
@@ -32,6 +34,13 @@ public interface RabbitMqService {
      * @param l 消费者实例
      */
     void listen(RabbitMessageListener l);
+
+    /**
+     * 批量注册消费者
+     *
+     * @param messageListenerCollection
+     */
+    void listen(Collection<RabbitMessageListener> messageListenerCollection);
 
     /**
      * 注册消费者

@@ -16,6 +16,7 @@ import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.util.StringUtils;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -94,40 +95,42 @@ public class SimpleRabbitServiceImpl implements RabbitMqService {
         }
     }
 
-    private void declareExchangeAndQueue(String exchangeName, ExchangeType ExchangeType, String routingKey,
+    private void declareExchangeAndQueue(String exchangeName, ExchangeType exchangeType, String routingKey,
                                          String... queueNames) {
-        if (queueNames != null && queueNames.length > 0) {
-            for (String queueName : queueNames) {
-                if (!declaredExchangeAndQueues.contains(exchangeName + "|" + queueName)) {
-                    Queue queue = new Queue(queueName);
-                    queue.setAdminsThatShouldDeclare(rabbitAdmin);
-                    rabbitAdmin.declareQueue(queue);
-
-                    switch (ExchangeType) {
-                        case TOPIC:
-                            TopicExchange topicExchange = new TopicExchange(exchangeName);
-                            rabbitAdmin.declareExchange(topicExchange);
-                            rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(topicExchange).with(routingKey));
-                            break;
-                        case DIRECT:
-                            DirectExchange directExchange = new DirectExchange(exchangeName);
-                            rabbitAdmin.declareExchange(directExchange);
-                            rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(directExchange).with(routingKey));
-                            break;
-                        case FANOUT:
-                            FanoutExchange fanoutExchange = new FanoutExchange(exchangeName);
-                            rabbitAdmin.declareExchange(fanoutExchange);
-                            rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(fanoutExchange));
-                            break;
-                        default:
-                            FanoutExchange exchange = new FanoutExchange(exchangeName);
-                            rabbitAdmin.declareExchange(exchange);
-                            rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(exchange));
-                            break;
-                    }
-                    declaredExchangeAndQueues.add(exchangeName + "|" + queueName);
-                }
+        if (queueNames == null || queueNames.length == 0) {
+            return;
+        }
+        for (String queueName : queueNames) {
+            if (declaredExchangeAndQueues.contains(exchangeName + "|" + queueName)) {
+                continue;
             }
+            Queue queue = new Queue(queueName);
+            queue.setAdminsThatShouldDeclare(rabbitAdmin);
+            rabbitAdmin.declareQueue(queue);
+
+            switch (exchangeType) {
+                case TOPIC:
+                    TopicExchange topicExchange = new TopicExchange(exchangeName);
+                    rabbitAdmin.declareExchange(topicExchange);
+                    rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(topicExchange).with(routingKey));
+                    break;
+                case DIRECT:
+                    DirectExchange directExchange = new DirectExchange(exchangeName);
+                    rabbitAdmin.declareExchange(directExchange);
+                    rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(directExchange).with(routingKey));
+                    break;
+                case FANOUT:
+                    FanoutExchange fanoutExchange = new FanoutExchange(exchangeName);
+                    rabbitAdmin.declareExchange(fanoutExchange);
+                    rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(fanoutExchange));
+                    break;
+                default:
+                    FanoutExchange exchange = new FanoutExchange(exchangeName);
+                    rabbitAdmin.declareExchange(exchange);
+                    rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(exchange));
+                    break;
+            }
+            declaredExchangeAndQueues.add(exchangeName + "|" + queueName);
         }
     }
 
@@ -186,6 +189,16 @@ public class SimpleRabbitServiceImpl implements RabbitMqService {
     public void listen(final RabbitMessageListener listener) {
         int concurrent = 1;
         listen(listener, concurrent);
+    }
+
+    @Override
+    public void listen(Collection<RabbitMessageListener> messageListenerCollection) {
+        if (messageListenerCollection == null || messageListenerCollection.size() == 0) {
+            return;
+        }
+        for (RabbitMessageListener listener : messageListenerCollection) {
+            this.listen(listener);
+        }
     }
 
     @Override
