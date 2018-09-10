@@ -221,32 +221,32 @@ public class SimpleRabbitServiceImpl implements RabbitMqService {
             adapter.setMessageConverter(messageConverter);
         }
 
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(rabbitMQConnectionFactory);
-        container.setMessageListener(adapter);
-        container.setQueueNames(listener.getTargetQueueName());
-        if (concurrentConsumers != null && concurrentConsumers.intValue() > 1) {
-            container.setConcurrentConsumers(concurrentConsumers);
+        SimpleMessageListenerContainer messageListenerContainer = new SimpleMessageListenerContainer(rabbitMQConnectionFactory);
+        messageListenerContainer.setMessageListener(adapter);
+        messageListenerContainer.setQueueNames(listener.getTargetQueueName());
+        if (concurrentConsumers != null && concurrentConsumers > 1) {
+            messageListenerContainer.setConcurrentConsumers(concurrentConsumers);
         }
         switch (listener.getAcknowledgeMode()) {
             case RabbitMessageListener.ACK_MODE_AUTO: {
-                container.setAcknowledgeMode(AcknowledgeMode.AUTO);
+                messageListenerContainer.setAcknowledgeMode(AcknowledgeMode.AUTO);
                 break;
             }
             case RabbitMessageListener.ACK_MODE_MANUAL: {
-                container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+                messageListenerContainer.setAcknowledgeMode(AcknowledgeMode.MANUAL);
                 break;
             }
             case RabbitMessageListener.ACK_MODE_NONE: {
-                container.setAcknowledgeMode(AcknowledgeMode.NONE);
+                messageListenerContainer.setAcknowledgeMode(AcknowledgeMode.NONE);
                 break;
             }
             default: {
-                container.setAcknowledgeMode(AcknowledgeMode.AUTO);
+                messageListenerContainer.setAcknowledgeMode(AcknowledgeMode.AUTO);
                 break;
             }
         }
 
-        container.start();
+        messageListenerContainer.start();
     }
 
     /**

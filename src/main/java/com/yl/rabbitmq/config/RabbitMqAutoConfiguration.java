@@ -5,6 +5,7 @@ import com.yl.rabbitmq.service.RabbitMqService;
 import com.yl.rabbitmq.service.impl.SimpleRabbitServiceImpl;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
@@ -140,9 +141,9 @@ public class RabbitMqAutoConfiguration implements ApplicationContextAware, Initi
     @Override
     public void afterPropertiesSet() throws Exception {
         if (autoListen) {
-            Collection<RabbitMessageListener> rabbitListeners = applicationContext.getBeansOfType(RabbitMessageListener.class).values();
+            Collection<ChannelAwareMessageListener> rabbitListeners = applicationContext.getBeansOfType(ChannelAwareMessageListener.class).values();
             RabbitMqService rabbitMQService = applicationContext.getBean(RabbitMqService.class);
-            rabbitMQService.listen(rabbitListeners);
+//            rabbitMQService.listen(rabbitListeners);
         }
     }
 }
