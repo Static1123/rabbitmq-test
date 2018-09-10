@@ -1,4 +1,4 @@
-package com.yl.rabbitmq.service.impl;
+package com.yl.rabbitmq.listener;
 
 import com.yl.rabbitmq.service.RabbitMessageListener;
 import org.slf4j.Logger;

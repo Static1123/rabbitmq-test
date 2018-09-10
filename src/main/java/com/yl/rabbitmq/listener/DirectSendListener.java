@@ -1,6 +1,5 @@
 package com.yl.rabbitmq.listener;
 
-import com.yl.rabbitmq.service.impl.AbstractRabbitMessageListener;
 import org.springframework.stereotype.Component;
 
 /**
