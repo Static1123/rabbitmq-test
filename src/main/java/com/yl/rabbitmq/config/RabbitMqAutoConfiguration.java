@@ -5,7 +5,6 @@ import com.yl.rabbitmq.service.RabbitMqService;
 import com.yl.rabbitmq.service.impl.SimpleRabbitServiceImpl;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
