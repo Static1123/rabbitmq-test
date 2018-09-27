@@ -1,6 +1,7 @@
 package com.yl.rabbitmq.service.impl;
 
 import com.google.common.collect.Sets;
+import com.rabbitmq.client.Channel;
 import com.yl.rabbitmq.entity.RabbitMqTarget;
 import com.yl.rabbitmq.service.RabbitMessageListener;
 import com.yl.rabbitmq.service.RabbitMqService;
@@ -9,18 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author admin
@@ -150,37 +148,6 @@ public class SimpleRabbitServiceImpl implements RabbitMqService {
     }
 
     /**
-     * 主动接收消息
-     *
-     * @param listener    消费者
-     * @param threadCount 所需要开启的消费者线程数，默认1
-     */
-    public void receive(final RabbitMessageListener listener, int threadCount) {
-        ExecutorService es;
-        if (threadCount <= 0) {
-            es = Executors.newSingleThreadExecutor();
-        } else {
-            es = Executors.newFixedThreadPool(threadCount);
-        }
-        for (int i = 0; i < threadCount; i++) {
-            es.execute(() -> {
-                while (true) {
-                    Object o = rabbitTemplate.receiveAndConvert(listener.getTargetQueueName());
-                    if (o != null) {
-                        listener.handleMessage(o);
-                        continue;
-                    }
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(DEFAULT_SLEEP_MILLIS);
-                    } catch (InterruptedException e) {
-                        logger.error("Sleep in receive method interrupted.");
-                    }
-                }
-            });
-        }
-    }
-
-    /**
      * 注册listener
      *
      * @param listener 要注册的消费者
@@ -205,24 +172,16 @@ public class SimpleRabbitServiceImpl implements RabbitMqService {
     public void listen(final RabbitMessageListener listener, Integer concurrentConsumers) {
         String targetQueue = listener.getTargetQueueName();
         this.ensureQueueDeclared(targetQueue);
-        // 注册监听接口
-        MessageListenerAdapter adapter = new MessageListenerAdapter(new Object() {
-            @SuppressWarnings("unused")
-            public void handleMessage(Object message) {
-                try {
-                    listener.handleMessage(message);
-                } catch (Exception e) {
-                    logger.error("MQ listener handle method exception " + e.getMessage(), e);
-                }
+        SimpleMessageListenerContainer messageListenerContainer = new SimpleMessageListenerContainer(rabbitMQConnectionFactory);
+        messageListenerContainer.setMessageListener(new ChannelAwareMessageListener() {
+            @Override
+            public void onMessage(Message message, Channel channel) throws Exception {
+                listener.handleMessage(message, channel);
             }
         });
-
         if (messageConverter != null) {
-            adapter.setMessageConverter(messageConverter);
+            messageListenerContainer.setMessageConverter(messageConverter);
         }
-
-        SimpleMessageListenerContainer messageListenerContainer = new SimpleMessageListenerContainer(rabbitMQConnectionFactory);
-        messageListenerContainer.setMessageListener(adapter);
         messageListenerContainer.setQueueNames(listener.getTargetQueueName());
         if (concurrentConsumers != null && concurrentConsumers > 1) {
             messageListenerContainer.setConcurrentConsumers(concurrentConsumers);
@@ -245,7 +204,7 @@ public class SimpleRabbitServiceImpl implements RabbitMqService {
                 break;
             }
         }
-
+        messageListenerContainer.setPrefetchCount(100);
         messageListenerContainer.start();
     }
 

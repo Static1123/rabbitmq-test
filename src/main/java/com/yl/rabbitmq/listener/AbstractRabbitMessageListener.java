@@ -56,20 +56,7 @@ public abstract class AbstractRabbitMessageListener<K> implements RabbitMessageL
         this.skipRequestTraceMQLog = skipRequestTraceMQLog;
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public void handleMessage(Object object) {
-        doHandleMessage((K) object);
-    }
-
     private Class getActualType() {
         return (Class) ((ParameterizedType) this.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
     }
-
-    /**
-     * 实际消息处理逻辑
-     *
-     * @param object
-     */
-    public abstract void doHandleMessage(K object);
 }

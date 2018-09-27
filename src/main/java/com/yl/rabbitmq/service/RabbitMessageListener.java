@@ -1,13 +1,14 @@
 package com.yl.rabbitmq.service;
 
-import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
+import com.rabbitmq.client.Channel;
+import org.springframework.amqp.core.Message;
 
 /**
  * 消息队列监听接口
  *
  * @author admin
  */
-public interface RabbitMessageListener extends ChannelAwareMessageListener {
+public interface RabbitMessageListener {
 
     int ACK_MODE_AUTO = 0;
 
@@ -23,16 +24,17 @@ public interface RabbitMessageListener extends ChannelAwareMessageListener {
     String getTargetQueueName();
 
     /**
-     * 业务处理方法
-     *
-     * @param messageData
-     */
-    void handleMessage(Object messageData);
-
-    /**
      * ack model
      *
      * @return AcknowledgeMode
      */
     int getAcknowledgeMode();
+
+    /**
+     * 处理发送消息
+     *
+     * @param messageData
+     * @param channel
+     */
+    void handleMessage(Message messageData, Channel channel);
 }

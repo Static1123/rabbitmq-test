@@ -12,15 +12,11 @@ import org.springframework.stereotype.Component;
 public class ExchangeSendListener extends AbstractRabbitMessageListener<String> {
     public ExchangeSendListener() {
         super("exchange1");
+        this.setAcknowledgeMode(ACK_MODE_MANUAL);
     }
 
     @Override
-    public void doHandleMessage(String object) {
-        System.out.println("ExchangeSendListener:doHandleMessage:msg=[" + object + "]");
-    }
+    public void handleMessage(Message messageData, Channel channel) {
 
-    @Override
-    public void onMessage(Message message, Channel channel) throws Exception {
-        
     }
 }
